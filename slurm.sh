@@ -37,5 +37,5 @@ docker run -itd --rm --privileged=true \
     -v $SCRIPTS_PATH/hosts:/etc/hosts \
     -v $MOUNT_POINT:$MOUNT_POINT  $GPU_FLAG \
     --name $SERVICE \
-    slurm:23.02.8 \
+    hyxcl001/slurm:23.02.8 \
     $SERVICE

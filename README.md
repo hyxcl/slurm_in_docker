@@ -1,17 +1,20 @@
 # slurm_in_docker
 ## install steps
 - clone this repo
-```
-git@github.com:hyxcl/slurm_in_docker.git
-```
+    ```
+    git@github.com:hyxcl/slurm_in_docker.git
+    ```
+- pull slurm docker image.
+    ```
+    docker pull hyxcl001/slurm:23.02.8
+    ```
 -  modify the slurm config files according to your cluster.   
     in slurm.conf, modify bellow part:
     ```
     ClusterName=gb200
-    SlurmctldHost=dgxa100
-    NodeName=node[1-2] Gres=gpu:8 CPUs=80 Boards=1 Sockets=2 CoresPerSocket=20 ThreadsPerCore=2 RealMemory=409600
-    NodeName=dgxa100 Gres=gpu:8 CPUs=80 Boards=1 Sockets=2 CoresPerSocket=20 ThreadsPerCore=2 RealMemory=409600
-    PartitionName=su Nodes=ALL Default=YES MaxTime=INFINITE State=UP
+    SlurmctldHost=masternode
+    NodeName=nvl721001-T[01-18] Gres=gpu:4 CPUs=144 Boards=1 Sockets=2 CoresPerSocket=72 ThreadsPerCore=1 RealMemory=921600
+    PartitionName=ALL Nodes=ALL Default=YES MaxTime=INFINITE State=UP
     ```
     in gres.conf, also modify according to your server.
 
