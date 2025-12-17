@@ -19,6 +19,12 @@ if [ "$SERVICE" != "slurmctld" ] && [ "$SERVICE" != "slurmd" ]; then
     exit 1
 fi
 
+# Set GPU flag only for slurmd
+GPU_FLAG=""
+if [ "$SERVICE" == "slurmd" ]; then
+    GPU_FLAG="--gpus all"
+fi
+
 docker run -itd --rm --privileged=true \
     --net=host --ipc=host \
     --ulimit stack=67108864 --ulimit memlock=-1 \
@@ -29,8 +35,7 @@ docker run -itd --rm --privileged=true \
     -v $SCRIPTS_PATH/slurm.conf:/etc/slurm/slurm.conf \
     -v $SCRIPTS_PATH/gres.conf:/etc/slurm/gres.conf \
     -v $SCRIPTS_PATH/hosts:/etc/hosts \
-    -v $MOUNT_POINT:$MOUNT_POINT \
-    --gpus all \
+    -v $MOUNT_POINT:$MOUNT_POINT  $GPU_FLAG \
     --name $SERVICE \
-    slurm:23.02.8-v2 \
+    slurm:23.02.8 \
     $SERVICE
