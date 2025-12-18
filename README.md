@@ -4,7 +4,7 @@
     ```
     git@github.com:hyxcl/slurm_in_docker.git
     ```
-- pull slurm docker image.
+- pull slurm docker image. or you can also build it from the docker/Dockerfile
     ```
     docker pull hyxcl001/slurm:23.02.8
     ```
