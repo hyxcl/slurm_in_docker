@@ -160,6 +160,8 @@ RUN if [ -d /usr/share/enroot/hooks.d ]; then \
         fi; \
     fi
 
+RUN echo "/dev/nvidia-caps-imex-channels" > /etc/enroot/mounts.d/imex.fstab
+
 COPY 98-nvidia.sh /etc/enroot/hooks.d/
 COPY slurm.conf /etc/slurm/
 COPY gres.conf /etc/slurm/
