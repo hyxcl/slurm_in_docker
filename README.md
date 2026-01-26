@@ -2,7 +2,7 @@
 ## install steps
 - clone this repo
     ```
-    git@github.com:hyxcl/slurm_in_docker.git
+    git clone https://github.com/hyxcl/slurm_in_docker.git
     ```
 - pull slurm docker image. or you can also build it from the docker/Dockerfile
     ```
