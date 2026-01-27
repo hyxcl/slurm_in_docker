@@ -1,6 +1,5 @@
 #!/bin/bash
-
-set -e
+set -x
 
 sudo service munge start
 
@@ -33,4 +32,3 @@ then
 fi
 
 tail -f /dev/null
-

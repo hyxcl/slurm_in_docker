@@ -1,8 +1,8 @@
 #!/bin/bash
 # Usage: ./slurm-master.sh slurmctld|slurmd
-
-MOUNT_POINT=${MOUNT_POINT:-/path/to/shared/filesystem}
-SCRIPTS_PATH=${SCRIPTS_PATH:-/path/to/scripts}
+set -x 
+MOUNT_POINT=${MOUNT_POINT:-/raid/vince}
+SCRIPTS_PATH=${SCRIPTS_PATH:-/raid/vince/slurm_in_docker}
 # Get service type from argument (required)
 SERVICE=$1
 
@@ -25,8 +25,10 @@ if [ "$SERVICE" == "slurmd" ]; then
     GPU_FLAG="--gpus all"
 fi
 
+
 docker run -itd --rm --privileged=true \
     --net=host --ipc=host \
+    --cgroupns=host \
     --ulimit stack=67108864 --ulimit memlock=-1 \
     --security-opt seccomp=unconfined \
     -v /var/run/docker.sock:/var/run/docker.sock \
@@ -37,5 +39,8 @@ docker run -itd --rm --privileged=true \
     -v $SCRIPTS_PATH/hosts:/etc/hosts \
     -v $MOUNT_POINT:$MOUNT_POINT  $GPU_FLAG \
     --name $SERVICE \
-    hyxcl001/slurm:23.02.8 \
+    hyxcl001/slurm:25.11.2-v3 \
     $SERVICE
+    #--entrypoint /bin/bash \
+    #-v /run/dbus/system_bus_socket:/run/dbus/system_bus_socket \
+    #-v /sys/fs/cgroup:/sys/fs/cgroup:rw \

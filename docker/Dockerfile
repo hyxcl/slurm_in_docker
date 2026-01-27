@@ -94,7 +94,7 @@ RUN curl -fsL https://github.com/openpmix/openpmix/releases/download/v3.2.3/pmix
     && ldconfig
 
 # Download, compile and install SLURM
-ENV SLURM_VER=23.02.8
+ENV SLURM_VER=25.11.2
 RUN curl -fsL https://download.schedmd.com/slurm/slurm-${SLURM_VER}.tar.bz2 | tar xfj - -C /opt/ \
     && rm -rf slurm-${SLURM_VER}.tar.bz2 \
     && cd /opt/slurm-${SLURM_VER}/ \

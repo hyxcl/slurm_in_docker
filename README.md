@@ -6,7 +6,7 @@
     ```
 - pull slurm docker image. or you can also build it from the docker/Dockerfile
     ```
-    docker pull hyxcl001/slurm:23.02.8
+    docker pull hyxcl001/slurm:25.11.2-v3
     ```
 -  modify the slurm config files according to your cluster.   
     in slurm.conf, modify bellow part:
