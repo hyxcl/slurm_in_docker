@@ -1,4 +1,8 @@
 # slurm_in_docker
+## Prerequisites
+- [Docker](https://docs.docker.com/get-docker/)
+- [The NVIDIA container toolkit 2](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html#docker) 
+-  no need to install enroot , pyxis in node.
 ## install steps
 - clone this repo
     ```
@@ -31,3 +35,5 @@
     ```
 ## launch jobs
 - in the master node. go into the container using `docker exec -it slurmctld bash`,  and then submit slurm jobs in the container.
+## Known Issue
+- sometimes after job finish, part of the nodes failed to delete enroot container, need to manually delete it. suggest to add a cleanup step in each job, you can refer to the nccl.sub in example.
