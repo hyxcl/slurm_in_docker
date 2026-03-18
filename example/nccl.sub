@@ -1,64 +1,55 @@
 #!/bin/bash
-
-#SBATCH --nodes=3
-#SBATCH --partition=H20
-#SBATCH --gres=gpu:8
-#SBATCH --ntasks-per-node=8
+#SBATCH -p ********
+#SBATCH --nodes=2
+#SBATCH --exclusive
+#SBATCH --ntasks-per-node=4
+#SBATCH --cpus-per-task=36
+#SBATCH --gpus-per-node=4
 #SBATCH --time=01:00:00
 #SBATCH --job-name=nccl
-#SBATCH --output=/raid/vince/scripts/slurm%j.log
-#SBATCH --exclusive
 
 
 
-#--exclude=
-# --nodelist=smc521ge-0042
-#export NCCL_DEBUG_SUBSYS=INIT,ENV,GRAPH,NET
+export NCCL_NVLS_ENABLE=1
+export NCCL_DEBUG=INFO
+export NCCL_P2P_LEVEL=NVL
+export NCCL_CUMEM_ENABLE=1
+export NCCL_RUNTIME_CONNECT=0 # Avoid lazy connection overhead when benchmarking 
+export NCCL_MNNVL_ENABLE=1
 
-cleanup() {
-    echo "--------------------------------------"
-    echo "Training finished (or interrupted). Starting Cleanup on ALL nodes..."
-    srun --ntasks=$SLURM_NNODES --ntasks-per-node=1 \
-         bash -c 'if [ -n "$(enroot list)" ]; then enroot remove -f $(enroot list); fi'
-    
-    echo "Cleanup completed."
-    echo "--------------------------------------"
-}
+export NCCL_SOCKET_IFNAME=bond0
 
-trap 'cleanup' EXIT TERM INT
+#optional
+############
+# export NCCL_MIN_CTAS=16
 
-export NCCL_SHM_DISABLE=1
-export NCCL_DEBUG=INFO 
-#export NCCL_IB_GID_INDEX=3
-export NCCL_IB_TC=96
-#export NCCL_IBEXT_DISABLE=0
-export NCCL_P2P_LEVEL=PXB
-#export UCX_IB_GID_INDEX=3
-#export NCCL_MIN_CTAS=4
-#export NCCL_SOCKET_IFNAME=bond0
-export MELLANOX_VISIBLE_DEVICES=all
-
-export MELLANOX_MOUNT_DRIVER=1
-#export OMPI_MCA_pml=ucx
-#export UCX_TLS=rc_x,cuda
-#export NCCL_NET_PLUGIN=none
-#export NCCL_IB_ADAPTIVE_ROUTING=1
-#export UCX_NET_DEVICES=mlx5_0:1,mlx5_1:1,mlx5_2:1,mlx5_3:1,mlx5_4:1,mlx5_5:1,mlx5_6:1,mlx5_7:1
-#export NCCL_IB_HCA==mlx5_0,mlx5_1,mlx5_2,mlx5_3,mlx5_4,mlx5_5,mlx5_6,mlx5_7
-#export NCCL_CROSS_NIC=1
-
-#export NCCL_SOCKET_IFNAME=ens255f0np0
-#export CUDA_LAUNCH_BLOCKING=1   # this influeces the performance
-
-# to get the master addr, port, world size, no need in eos, didn't find out why.
-nodes=($(scontrol show hostnames "$SLURM_JOB_NODELIST"))
-master_node=${nodes[0]}
-master_addr=$(srun --nodes=1 --ntasks=1 -w "$master_node" hostname --ip-address)
-export MASTER_ADDR=$master_addr
-export MASTER_PORT=12345
-export WORLD_SIZE=$(expr 8 \* $SLURM_JOB_NUM_NODES)
-
-srun     --mpi=pmix --container-image=/raid/vince/images/pytorch_v1+25.09-py3.sqsh     --container-mounts=/raid/vince:/raid/vince --no-container-entrypoint  all_reduce_perf_mpi -b 1 -e 1G -f 2 -g 1 | tee /raid/vince/scripts/logs/nccl-allreduce_${SLURM_JOB_NUM_NODES}nodes-${SLURM_JOB_ID}.log
-#srun     --mpi=pmix --container-image=/home/congliangx/workspace/scripts/images/pytorch_v1+25.09-py3.sqsh     --container-mounts=/home/congliangx/workspace:/home/congliangx/workspace  alltoall_perf_mpi  -b 1M -e 2G -f 2 -g 1 | tee /home/congliangx/workspace/scripts/qwen/megatron-moe-scripts/output//rtx6kd_slurm_logs/nccl-all2all_${SLURM_JOB_NUM_NODES}nodes-${SLURM_JOB_ID}.log
+# export UCX_TLS=rc
+# export UCX_NET_DEVICES=bond0
+# export OMPI_MCA_pml=ucx
+# export OMPI_MCA_coll_hcoll_enable=0
+# export OMPI_MCA_btl=^openib,smcuda
+# export OMPI_MCA_coll=^hcoll
+# export OMPI_MCA_btl_openib_if_include=bond0
 
 
+
+export NCCL_MNNVL_ENABLE=0
+[[ ${SLURM_JOB_NUM_NODES} -gt 1 ]] && { export NCCL_MNNVL_ENABLE=1; }
+
+
+
+srun --mpi=pmix --export=ALL --cpu-bind=none --ntasks-per-node=4 \
+                --container-image="${IMAGE}" \
+                --container-mounts=${MOUNT_DIR}:${MOUNT_DIR} \
+		all_reduce_perf_mpi -b 8 -f 2 -g 1 -e 16g | tee ${LOGDIR}/nccl-allreduce_${SLURM_JOB_NUM_NODES}nodes-${SLURM_JOB_NODELIST}_${SLURM_JOB_ID}.log
+
+
+srun --mpi=pmix --export=ALL --cpu-bind=none --ntasks-per-node=4 \
+                --container-image="${IMAGE}" \
+                --container-mounts=${MOUNT_DIR}:${MOUNT_DIR} \
+		alltoall_perf_mpi -b 8 -f 2 -g 1 -e 16g | tee ${LOGDIR}/nccl-all2all_${SLURM_JOB_NUM_NODES}nodes-${SLURM_JOB_NODELIST}_${SLURM_JOB_ID}.log
+
+srun --mpi=pmix --export=ALL --cpu-bind=none --ntasks-per-node=4 \
+                --container-image="${IMAGE}" \
+                --container-mounts=${MOUNT_DIR}:${MOUNT_DIR} \
+		all_gather_perf_mpi -b 8 -f 2 -g 1 -e 16g | tee ${LOGDIR}/nccl-allgather_${SLURM_JOB_NUM_NODES}nodes-${SLURM_JOB_NODELIST}_${SLURM_JOB_ID}.log

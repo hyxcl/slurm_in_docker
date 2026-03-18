@@ -95,10 +95,11 @@ RUN curl -fsL https://github.com/openpmix/openpmix/releases/download/v3.2.3/pmix
 
 # Download, compile and install SLURM
 ENV SLURM_VER=25.11.2
-RUN curl -fsL https://download.schedmd.com/slurm/slurm-${SLURM_VER}.tar.bz2 | tar xfj - -C /opt/ \
+RUN PAM_DIR=/lib/$(dpkg-architecture -qDEB_HOST_MULTIARCH)/security \
+    && curl -fsL https://download.schedmd.com/slurm/slurm-${SLURM_VER}.tar.bz2 | tar xfj - -C /opt/ \
     && rm -rf slurm-${SLURM_VER}.tar.bz2 \
     && cd /opt/slurm-${SLURM_VER}/ \
-    && ./configure --prefix=/usr/local --disable-dependency-tracking --disable-debug --disable-x11 --enable-really-no-cray --enable-salloc-kill-cmd --with-hdf5=no  --with-libcurl --sysconfdir=/etc/slurm --enable-pam --with-pam_dir="/lib/x86_64-linux-gnu/security" --with-shared-libslurm  --with-pmix=/opt/pmix/v4 --with-hwloc="/opt/hwloc" \
+    && ./configure --prefix=/usr/local --disable-dependency-tracking --disable-debug --disable-x11 --enable-really-no-cray --enable-salloc-kill-cmd --with-hdf5=no  --with-libcurl --sysconfdir=/etc/slurm --enable-pam --with-pam_dir=${PAM_DIR} --with-shared-libslurm  --with-pmix=/opt/pmix/v4 --with-hwloc=/opt/hwloc \
     && make -j && make -j contrib && make install && make install-contrib \
     && if [ -d "contribs/pam_slurm_adopt" ]; then \
         cd contribs/pam_slurm_adopt \

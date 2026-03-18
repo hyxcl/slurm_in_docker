@@ -1,8 +1,17 @@
 #!/bin/bash
 # Usage: ./slurm-master.sh slurmctld|slurmd
 set -x 
-MOUNT_POINT=${MOUNT_POINT:-/raid/vince}
-SCRIPTS_PATH=${SCRIPTS_PATH:-/raid/vince/slurm_in_docker}
+SCRIPTS_PATH=${SCRIPTS_PATH:-$(cd "$(dirname "$0")" && pwd)}
+
+MOUNT_POINT=${MOUNT_POINT:-/tmp}
+echo "MOUNT_POINT=$MOUNT_POINT (set a shared storage path accessible by all nodes, e.g. export MOUNT_POINT=/your/nfs/path)"
+
+ARCH=$(uname -m)
+if [ "$ARCH" = "aarch64" ]; then
+    SLURM_IMAGE=${SLURM_IMAGE:-hyxcl001/slurm:25.11.2-arm}
+else
+    SLURM_IMAGE=${SLURM_IMAGE:-hyxcl001/slurm:25.11.2-v3}
+fi
 # Get service type from argument (required)
 SERVICE=$1
 
