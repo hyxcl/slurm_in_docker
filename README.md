@@ -49,5 +49,10 @@
     ```
 ## launch jobs
 - in the master node. go into the container using `docker exec -it slurmctld bash`,  and then submit slurm jobs in the container.
+- **Note**: if the slurmctld node is also a worker node, the slurmctld container does not have GPU access. In this case, submit jobs from the slurmd container instead: `docker exec -it slurmd bash`.
+- when using `example/nccl.sub`, make sure to modify the following before submitting:
+    - `NCCL_SOCKET_IFNAME` and `UCX_NET_DEVICES`: set to your actual network interface (use an eth interface).
+    - `--partition`: change to your actual partition name.
+    - `IMAGE` and `MOUNT_DIR`: set to your container image and mount directory.
 ## Known Issue
 - sometimes after job finish, part of the nodes failed to delete enroot container, need to manually delete it. suggest to add a cleanup step in each job, you can refer to the nccl.sub in example.

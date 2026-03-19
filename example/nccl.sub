@@ -18,13 +18,13 @@ export NCCL_RUNTIME_CONNECT=0 # Avoid lazy connection overhead when benchmarking
 export NCCL_MNNVL_ENABLE=1
 
 export NCCL_SOCKET_IFNAME=bond0
-
+export UCX_NET_DEVICES=bond0
 #optional
 ############
 # export NCCL_MIN_CTAS=16
 
 # export UCX_TLS=rc
-# export UCX_NET_DEVICES=bond0
+
 # export OMPI_MCA_pml=ucx
 # export OMPI_MCA_coll_hcoll_enable=0
 # export OMPI_MCA_btl=^openib,smcuda
